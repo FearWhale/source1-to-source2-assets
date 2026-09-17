@@ -1,0 +1,4 @@
+interface:
+  display_name: "Source 1 资产移植"
+  short_description: "把 Source 1 的材质、模型、粒子移植进 Source 2 插件，含官方工具用法与已知损失"
+  default_prompt: "Use $source1-to-source2-assets to port these Source 1 materials, models, and particles into my Source 2 addon."
