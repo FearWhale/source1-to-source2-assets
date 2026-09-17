@@ -103,7 +103,3 @@ The pipeline is lossy. Each loss and its workaround is documented, but one-to-on
 ## Asset rights
 
 Porting redistributes someone else's game assets. Local use and public distribution — especially uploading to a workshop or publishing a repository — have very different requirements. Confirm you have the right to redistribute before publishing. This skill documents a technical process and ships no game assets.
-
-## License
-
-Not specified. If you intend to open-source it, add a `LICENSE` at the repository root.
