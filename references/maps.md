@@ -132,6 +132,19 @@ importfilelist
 | --- | --- | --- |
 | `light_omni` | `light_omni2` | 目标引擎只有 `light_omni2`，没有 `light_omni` |
 | `light_spot` | `light_omni2` | 目标引擎同样没有 `light_spot`；聚光由灯自身的角度参数控制，实体属性里已带锥角数据 |
+| `func_breakable_surf` | `func_breakable` | 目标引擎没有 surf 变体，改到通用可破坏 brush |
+| `prop_flare` | `prop_dynamic` | 目标引擎没有该道具类，改到通用动态道具以保留模型 |
+
+**没有对应类的要删掉，不要硬套。** 目标引擎根本不存在这些机制，改名只会造出一个语义错误的新实体：
+
+| 源类名 | 处理 | 原因 |
+| --- | --- | --- |
+| `info_node_link` | 删除 | 目标引擎的导航是数据驱动的，没有导航点连线实体 |
+| `func_areaportal` | 删除 | 目标引擎的遮挡剔除机制不同，没有 areaportal |
+| `env_lensflare`、`shadow_control` | 删除 | 无对应实体 |
+| `npc_*`（`npc_headcrab`、`npc_barnacle`、`npc_human_scientist` 等） | 删除 | 目标引擎没有这些 NPC |
+| `item_*`（`item_weapon_*`、`item_ammo_*`、`item_battery`、`item_healthkit`、`item_healthcharger`、`item_suit`） | 删除 | 目标引擎没有这类拾取物 |
+| 游戏自制的实体（如自定义传送门、分配器） | 删除 | 只有源游戏才有对应代码 |
 
 **先自查一遍类名**，不要等 Hammer 报错：
 
@@ -149,6 +162,16 @@ dmxconvert -i <prefab_text> -ie keyvalues2 -o <prefab> -oe binary
 ```
 
 替换时只改 classname 的值（KV3 里是 `"classname" "string" "light_omni"` 三段），别误伤同名的资源路径。改完用同一套方法复查一遍类名归零。
+
+**删除实体时要连同元素的类型名一起去掉。** DMX 的数组元素写成 `"<类型名>" { ... }`——类型名是紧跟在花括号前面的一行独立字符串。只删 `{...}` 会留下孤立的类型名，`dmxconvert` 转回二进制时会报：
+
+```
+<文件>(行号) : Expecting '{', didn't find it!
+```
+
+所以删除范围要覆盖「类型名 + 块 + 尾随逗号」。删完先转回二进制验证一次，再从生成的二进制里重新抽一遍类名做终检。
+
+顺带一提：`dmxconvert` 解析失败时会往**当前工作目录**写一份 `dmxconvert_*.mdmp` 崩溃转储，那是失败产物，不是资产。
 
 ## 验收与边界
 
