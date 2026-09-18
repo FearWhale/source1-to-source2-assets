@@ -1,13 +1,13 @@
 ---
 name: source1-to-source2-assets
-description: 把 Source 1 游戏或模组的材质、模型、粒子移植进 Source 2 工坊插件时使用，含三条独立入口与官方导入工具的调用方式、产出结构和已知信息损失。只做全新资产创作时不要使用。
+description: 把 Source 1 游戏或模组的材质、模型、粒子、地图移植进 Source 2 工坊插件时使用，含四条独立入口与官方导入工具的调用方式、产出结构和已知信息损失。只做全新资产创作时不要使用。
 metadata:
   short-description: Source 1 资产移植进 Source 2
 ---
 
 # Source 1 → Source 2 资产移植
 
-三类资产的管线机制完全不同，先按类型选入口，再读对应的 reference。下文所有 `<name>` 代表实际的项目、游戏、插件或资产名。
+四类资产的管线机制完全不同，先按类型选入口，再读对应的 reference。下文所有 `<name>` 代表实际的项目、游戏、插件或资产名。
 
 ## 通用前提
 
@@ -20,7 +20,7 @@ metadata:
 | `dmxconvert.exe` | DMX / PCF 格式转换，粒子导入器内部会调用 |
 | `resourcecompiler.exe` | 把源文件编译成运行期资源 |
 
-源侧还需要 `vpk.exe`（列目录、解包）和 `vtf2tga.exe`（VTF 转 TGA），一般就在原游戏的 `bin/` 下。
+源侧还需要 `vpk.exe`（列目录、解包）和 `vtf2tga.exe`（VTF 转 TGA），一般就在原游戏的 `bin/` 下。地图另需要一个 BSP 反编译器（BSPSource 的 Windows 整合包自带 Java 运行时，不必单独装 JDK）。
 
 **`source1import.exe` 调用形状**
 
@@ -62,8 +62,13 @@ importfilelist
 
 必须先落成散文件，精灵贴图还要额外补编译入口。见 [references/particles.md](references/particles.md)。
 
+## 入口四：地图
+
+地图输入只接受 `.vmf`，而源游戏通常只带编译后的 `.bsp`，所以先要反编译。完整链路、两个必踩的坑和产出结构见 [references/maps.md](references/maps.md)。
+
 ## 通用验收
 
 1. 每次导入看尾部的 `OK: N imported, M failed, K skipped, J unknown`，`failed` 与 `unknown` 逐条追。
 2. 材质核对 `.vmat` 里引用的每张贴图是否落地；模型核对材质槽是否解析、外部引用是否齐全；粒子在粒子编辑器里逐个预览。
 3. 源侧统计数量与产出数量对不上时，差额就是要手工处理的清单：先按差额定位，再决定补做还是删引用。
+4. 地图在 Hammer 里打开主 `.vmap`：brushwork 在 environment prefab、实体在 gameplay prefab；`_refs.txt` 里的依赖按材质与模型入口分别补。

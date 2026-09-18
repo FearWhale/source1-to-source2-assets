@@ -15,18 +15,20 @@ Source 1 → Source 2 的资产移植没有统一入口：
 | 材质 | `source1import.exe` | 法线 alpha 里的反射遮罩丢失；带代理的动画自发光不转；自定义着色器只留警告 |
 | 模型 | `cs_mdl_import.exe` | 导入产物**没有材质重映射**，不手补就是粉黑格；断裂件引用会整片报错 |
 | 粒子 | `source1import.exe` | 不能从 VPK 直接导；精灵贴图必须是 `tga + mks + vtex` 三件套，缺一个就紫黑格 |
+| 地图 | `source1import.exe` + BSPSource | 只接受 `.vmf`；反编译产物缺顶层块会导致解析失败；content 树必须独立于 game 目录 |
 
 这些结论来自一次真实的移植过程，不是从文档抄的：材质那三条是逐张 `.vmat` 核对出来的，模型那条是在模型编辑器里看到整片报错才定位到的，粒子那条是追着导入器内部调用 `dmxconvert` 的报错找出来的。
 
-## 三个入口
+## 四个入口
 
-技能按资产类型分三条独立入口，各自带一份细节文档，按需读取：
+技能按资产类型分四条独立入口，各自带一份细节文档，按需读取：
 
 ```text
 SKILL.md                      路由器：通用前提、工具清单、调用形状、验收标准
 references/materials.md       入口一：参数映射表、产出结构、四条已知信息损失
 references/models.md          入口二：产出结构、MaterialGroupList 重映射模板、外部引用处理
 references/particles.md       入口三：散文件要求、贴图三件套、空引用修复路径、渲染器字段
+references/maps.md            入口四：BSP 反编译、VMF 顶层块补齐、vmap 与 prefab 产出结构
 ```
 
 ## 覆盖内容

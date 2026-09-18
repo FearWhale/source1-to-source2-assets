@@ -15,18 +15,20 @@ There is no single entry point for Source 1 → Source 2 asset porting:
 | Materials | `source1import.exe` | Reflection masks stored in normal-map alpha are lost; proxy-driven animated self-illumination is dropped; custom shaders degrade to warnings |
 | Models | `cs_mdl_import.exe` | The output has **no material remap**, so materials fail to resolve; break-piece references surface as errors |
 | Particles | `source1import.exe` | Cannot import straight from a VPK; sprite textures need the `tga + mks + vtex` trio or the renderer shows a missing-texture checkerboard |
+| Maps | `source1import.exe` + BSPSource | Only `.vmf` is accepted; a decompiled map is missing top-level blocks; the content tree must be separate from the game directory |
 
 These notes come from an actual port, not from documentation: the material losses were found by auditing the generated `.vmat` files, the model issue appeared as a wall of errors in the model editor, and the particle issue was traced through the importer's internal `dmxconvert` invocation.
 
-## Three entry points
+## Four entry points
 
-The skill splits by asset type into three independent entry points, each with its own detail document read on demand:
+The skill splits by asset type into four independent entry points, each with its own detail document read on demand:
 
 ```text
 SKILL.md                      Router: prerequisites, tool inventory, invocation shape, acceptance checks
 references/materials.md       Entry 1: parameter mapping, output layout, four known losses
 references/models.md          Entry 2: output layout, MaterialGroupList remap template, external references
 references/particles.md       Entry 3: loose-file requirement, texture trio, empty-reference repair, renderer fields
+references/maps.md            Entry 4: BSP decompilation, VMF top-level blocks, vmap and prefab layout
 ```
 
 ## What it covers
