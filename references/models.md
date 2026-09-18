@@ -104,8 +104,9 @@ model = "models/<dir>/<name>_gib_01.vmdl"
 三个必须记住的点：
 
 - **`use_global_default` 必须留 `false`。** 它对应模型编辑器里的 "Globally Replace All Materials In Model"：勾上之后所有材质槽都塌缩到那一个材质，逐条材质 remap 全部失效，模型看上去就是"材质不对"。它既不能当缺失材质的兜底（缺 remap 时编译仍会整体失败并报 `referencing missing material '<名称>.vmat'`），也不该在已有逐条 remap 时开启。生成 vmdl 时写 `use_global_default = false`、`global_default_material = ""`。
-- **带 skin 的模型，导入器会自己生成 `MaterialGroupList`。** 里面是按皮肤分组的 `MaterialGroup`（`name = "1"`、`"2"`…），但 `remaps` 全是空的（`remaps = [  ]`）。空 remaps 不是可用的映射，这些组必须一并填上。所以判断"是否已有 remap"要看有没有真实的 `to = "materials/..."`，不能只看有没有 `MaterialGroupList` 这个字符串——否则这批模型会被整批漏掉。
+- **带 skin 的模型，导入器会自己生成 `MaterialGroupList`。** 里面是按皮肤分组的 `MaterialGroup`（`name = "1"`、`"2"`…），`remaps` 全是空的（`remaps = [  ]`），而且**只有命名组、没有默认组**。命名组只在显式选择皮肤时生效，而道具默认不带皮肤，材质就解析不到——编译报 `Mesh '...' referencing missing material ...` 并整体失败。处理分两步：(1) 把命名组的空 `remaps` 填上；(2) 再补一个 `DefaultMaterialGroup`（remaps 取命名组的并集，同名 `from` 以第一个组为准），保留命名组以维持皮肤。判断"已有 remap"要看有没有真实的 `to = "materials/..."`，不能只看有没有 `MaterialGroupList` 这个字符串。
 - **材质解析范围要覆盖所有挂载的 VPK。** 模组通常还会挂载它的基础游戏包，模型可能引用基础游戏的材质；只索引模组自己的包会漏。另外**网格 DMX 里引用的材质可能比模型 `_refs.txt` 多**，因此收尾需要一轮"收集全部未解析名 → 解析 → 导入 → 再修正"。
+- **收尾做一次机械校验。** 对每个模型：网格 DMX 里的材质名集合必须是 remap `from` 集合的子集，并且每条 remap 的 `to` 都指向存在的文件。这两项任一不满足编译就会失败；只看"有没有 remap"会漏掉这两种情况。
 
 收尾时把解析不到的先指向一个已知材质，等补导入之后做**第二遍修正**：把 `to` 仍指向那个兜底材质、而 `from` 现在已经能解析的条目改掉。源数据里本来就有的坏引用（不存在的名字）保持兜底即可。
 
