@@ -194,6 +194,42 @@ offset_normals
 
 区分方法很简单：**拿类名去源 VMF 里查**。源 VMF 里没有、prefab 里却有的，就是导入器生成的，别动；源 VMF 里有、prefab 里也有的，才是需要判断去留的源实体。
 
+**类名匹配要区分大小写地写正则。** 自制类里常有大写（例如 `newLight_Point`），用 `[a-z_0-9]+` 之类的模式去抓类名会**静默漏掉**它们——删除逻辑漏掉它们、类名核对也会漏掉它们，于是给出"全部合规"的假结论。抽类名一律用 `[A-Za-z_0-9]+`。
+
+## 只保留影响场景的实体
+
+如果目标是拿导入结果当"可重建的场景底子"而不是完整复刻玩法，可以按**保留白名单**清理：能渲染或能被看到听到的留下，只驱动行为的删掉。实测两张关卡按这个口径清完，实体种类从 56/65 降到 34/40。
+
+**保留**
+
+| 类别 | 类名 |
+| --- | --- |
+| 灯光 | `light_omni2`、`light_barn`、`light_rect`、`light_environment`、`light_dynamic`、`info_lighting`，以及自制灯光映射后的结果 |
+| 天空与反射 | `env_sky`、`sky_camera`、`env_cubemap_box` |
+| 雾与后处理 | `env_fog_controller`、`fog_volume`、`post_processing_volume`、`env_tonemap_controller`、`color_correction` |
+| 模型 | `prop_static`、`prop_dynamic`、`prop_dynamic_override`、`prop_physics`、`prop_physics_override`、`prop_ragdoll`、`prop_door_rotating` |
+| 可见几何与机关 | `func_brush`、`func_breakable`、`func_water`、`func_door`、`func_door_rotating`、`func_rotating`、`func_tracktrain`、`func_useableladder`、`func_clip_vphysics`、`func_button`、`momentary_rot_button` |
+| 特效 | `info_particle_system`、`env_particle_glow`、`env_explosion`、`env_physexplosion`、`env_spark`、`path_particle_rope`、`gibshooter`、`env_fade`、`env_wind`、`water_lod_control` |
+| 环境音 | `ambient_generic`、`env_soundscape`、`env_soundscape_proxy` |
+| 出生点与移动路径 | `info_player_start`，以及与 `func_tracktrain` 配套的 `path_track` / `path_node_generic` |
+
+**删除**：`trigger_*`、`logic_*`、`math_*`、`filter_*`、`ai_*`、`npc_*`、`assault_*`、`point_*`（除已归类的特效）、`scripted_sequence`、`info_target`、`info_landmark`、`info_hint`、`info_ladder_dismount`、`info_teleport_destination`、`env_shake`、`env_hudhint`、`env_message` 等纯驱动类。
+
+两个容易误删的：`path_node_generic` 看着像导航节点，其实是移动平台路径的挂点；`worldspawn` 是地图根元素，每个 prefab 都有一个，必须保留。清理前后都用类名核对一遍，确认没有把这两类顺手删掉。
+
+## 自制灯光类
+
+游戏经常带一套自制的动态灯光实体，它们不在目标引擎的类表里，但语义上就是灯，应该按灯映射而不是删除：
+
+| 源类名 | 目标类名 | 说明 |
+| --- | --- | --- |
+| `newLight_Point` | `light_omni2` | 点光源 |
+| `newLight_Spot` | `light_barn` | 聚光 |
+| `newLight_Dir` | `light_environment` | 平行光 |
+| `newLights_settings` | 删除 | 按时间改亮度/颜色的灯光脚本控制器，属逻辑，无对应实体 |
+
+自制灯光往往带 god rays、曝光、色调映射这类目标引擎没有的参数，映射后只剩"这里有一盏灯"，动态变化的部分需要重做。
+
 **先自查一遍类名**，不要等 Hammer 报错：
 
 1. 从 prefab 里取出所有 `"classname" "string" "<类名>"`。注意 prefab 通常是**二进制 DMX**，用可读串提取即可。
