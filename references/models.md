@@ -113,6 +113,20 @@ model = "models/<dir>/<name>_gib_01.vmdl"
 
 按这套流程跑下来，材质解析可以做到 100%，剩下的只会是源数据里本就不存在的名字。
 
+## 编译期的结构问题
+
+材质之外，导入产物还有几类会让编译直接失败的结构问题，都需要在收尾时一并处理：
+
+- **bodygroup 的 choice 没有名字。** 导入器生成的 `BodyGroupList` 里，`BodyGroupChoice` 只有 `meshes` 字段、**没有 `name`**，编译器报：
+
+  ```
+  Invalid empty body group choice name in bodygroup '<名称>'. Non-empty choice names are required.
+  ```
+
+  给每个 choice 补一个非空名字即可（按组内序号 `choice_0`、`choice_1`…）。**空 choice（`meshes = [  ]`，对应源模型的 blank）同样需要名字**，不能省略。
+
+这类错误在错误面板里往往只显示模型名、材质名或节点名的一部分。定位时不要靠截图，按"挨个模型扫一遍结构"的方式校验更可靠：确认每个模型都有材质组、每条 remap 的 `to` 存在、每个 bodygroup choice 都有名字。
+
 ## 其他注意
 
 - 角色类模型还要查骨骼、附件点（`AttachmentList`）、hitbox 和动画序列；面部形变（flex）在目标引擎里没有一一对应，通常要重建或放弃。
