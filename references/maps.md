@@ -101,6 +101,25 @@ maps/prefabs/<name>/<name>_nav_prefab.vmap
 
 `_refs.txt` 与模型入口的 `_refs.txt` 是同一个机制：`materials/...vmt` 走材质入口批量导入，`models/...mdl` 走模型入口（`cs_mdl_import` 加材质重映射）。
 
+## 补依赖
+
+用 `-skipdeps` 导入时只产出地图本身，依赖要从 `_refs.txt` 分流：
+
+```
+importfilelist
+{
+	"file"	"materials/...vmt"
+	"file"	"models/...mdl"
+	"file"	"postprocess/...vpost"
+}
+```
+
+- **材质**：抽出 `.vmt` 条目一次性喂给 `source1import`。天空盒材质通常转不过去（S2 的天空盒要在地图里单独配置），这不算失败。
+- **模型**：抽出 `.mdl` 条目，走模型入口的批量流程（解包 → 逐个转换 → 补材质 → 注入 remap）。一个中等规模的关卡实测约四百个模型。
+- 漏掉的材质在 Hammer 里表现为粉黑格或错误引用。先确认 `_refs.txt` 是否已全部导入，再怀疑转换本身。
+
+体量参考：一个中等规模关卡补齐依赖后，content 侧约 2 GB 量级（数百个 `.vmat`、上千张贴图与网格），构建时间要按这个量级预期。
+
 ## 验收与边界
 
 - 在 Hammer 里打开主 `.vmap`：brushwork 在 environment prefab，实体在 gameplay prefab。

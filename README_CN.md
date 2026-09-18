@@ -25,10 +25,10 @@ Source 1 → Source 2 的资产移植没有统一入口：
 
 ```text
 SKILL.md                      路由器：通用前提、工具清单、调用形状、验收标准
-references/materials.md       入口一：参数映射表、产出结构、四条已知信息损失
-references/models.md          入口二：产出结构、MaterialGroupList 重映射模板、外部引用处理
+references/materials.md       入口一：参数映射表、产出结构、五条已知信息损失
+references/models.md          入口二：产出结构、MaterialGroupList 重映射模板、外部引用、批量转换与重映射自动化
 references/particles.md       入口三：散文件要求、贴图三件套、空引用修复路径、渲染器字段
-references/maps.md            入口四：BSP 反编译、VMF 顶层块补齐、vmap 与 prefab 产出结构
+references/maps.md            入口四：BSP 反编译、VMF 顶层块补齐、vmap 与 prefab 产出结构、依赖补全
 ```
 
 ## 覆盖内容

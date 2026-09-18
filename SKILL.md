@@ -70,5 +70,6 @@ importfilelist
 
 1. 每次导入看尾部的 `OK: N imported, M failed, K skipped, J unknown`，`failed` 与 `unknown` 逐条追。
 2. 材质核对 `.vmat` 里引用的每张贴图是否落地；模型核对材质槽是否解析、外部引用是否齐全；粒子在粒子编辑器里逐个预览。
-3. 源侧统计数量与产出数量对不上时，差额就是要手工处理的清单：先按差额定位，再决定补做还是删引用。
-4. 地图在 Hammer 里打开主 `.vmap`：brushwork 在 environment prefab、实体在 gameplay prefab；`_refs.txt` 里的依赖按材质与模型入口分别补。
+3. 模型和地图都要求**每个被引用的材质名都有 remap**：`use_global_default` 不兜底，缺一条就会让整包编译失败（`referencing missing material`）。
+4. 源侧统计数量与产出数量对不上时，差额就是要手工处理的清单：先按差额定位，再决定补做还是删引用。
+5. 地图在 Hammer 里打开主 `.vmap`：brushwork 在 environment prefab、实体在 gameplay prefab；`_refs.txt` 里的依赖按材质与模型入口分别补。

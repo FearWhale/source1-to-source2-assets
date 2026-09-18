@@ -25,10 +25,10 @@ The skill splits by asset type into four independent entry points, each with its
 
 ```text
 SKILL.md                      Router: prerequisites, tool inventory, invocation shape, acceptance checks
-references/materials.md       Entry 1: parameter mapping, output layout, four known losses
-references/models.md          Entry 2: output layout, MaterialGroupList remap template, external references
+references/materials.md       Entry 1: parameter mapping, output layout, five known losses
+references/models.md          Entry 2: output layout, MaterialGroupList remap template, external references, batch conversion and remap automation
 references/particles.md       Entry 3: loose-file requirement, texture trio, empty-reference repair, renderer fields
-references/maps.md            Entry 4: BSP decompilation, VMF top-level blocks, vmap and prefab layout
+references/maps.md            Entry 4: BSP decompilation, VMF top-level blocks, vmap and prefab layout, dependency completion
 ```
 
 ## What it covers
