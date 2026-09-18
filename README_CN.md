@@ -85,7 +85,8 @@ git clone <repo-url> "$env:USERPROFILE\.codex\skills\source1-to-source2-assets"
 
 - **Source 2 工坊工具**：技能依赖其中的 `source1import.exe`、`cs_mdl_import.exe`、`dmxconvert.exe`、`resourcecompiler.exe`，位于工具的 `game/bin/win64/` 下。
 - **源侧工具**：`vpk.exe`（列目录、解包）与 `vtf2tga.exe`（贴图转 TGA），通常在原游戏的 `bin/` 下。
-- 导入本身是本地操作，不需要联网。写盘位置、是否允许修改原游戏目录，按你自己的授权范围执行。
+- 导入本身是本地操作，不需要联网。
+- **默认不写入 game 目录。** 产生运行期资源的编译/构建步骤只在你明确要求时才执行；原游戏目录同理。
 
 ## 命名约定
 

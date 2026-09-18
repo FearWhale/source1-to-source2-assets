@@ -45,7 +45,10 @@ importfilelist
 
 **产出与编译**
 
-导入器只写**源文件**到 content 侧（`.vmat` / `.tga` / `.vtex` / `.mks` / `.vmdl` / `.dmx` / `.vpcf`）。运行期资源（`*_vmat_c`、`*_vtex_c`、`*_vpcf_c`…）要在工具加载或构建时才生成到 game 侧；没构建过就解析不到，表现就是紫黑格或空引用。导入器还会在插件 game 侧留下 `source1import*` 日志，别当成自己的资产。
+导入器只写**源文件**到 content 侧（`.vmat` / `.tga` / `.vtex` / `.mks` / `.vmdl` / `.dmx` / `.vpcf`）。运行期资源（`*_vmat_c`、`*_vtex_c`、`*_vpcf_c`…）要在工具加载或构建时才生成到 game 侧；没构建过就解析不到，表现就是紫黑格或空引用。
+
+- **默认不写入 game 目录。** 导入只写 content 侧；编译/构建是独立的一步，只有用户明确要求时才执行，产物才落在 game 侧。
+- 例外是导入器自己留下的 `source1import*` 日志（用 `-logwarnings` 时落在插件 game 侧）。这属于工具副作用，不是你的资产；清理前先跟用户确认。
 
 ## 入口一：材质
 

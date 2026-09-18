@@ -85,7 +85,8 @@ Or invoke it explicitly: `$source1-to-source2-assets`
 
 - **Source 2 workshop tools**: the skill relies on `source1import.exe`, `cs_mdl_import.exe`, `dmxconvert.exe`, and `resourcecompiler.exe`, located under the toolchain's `game/bin/win64/`.
 - **Source-side tools**: `vpk.exe` (listing, extraction) and `vtf2tga.exe` (texture conversion), usually under the original game's `bin/`.
-- Importing runs locally and needs no network access. Where files get written, and whether the original game directory may be touched, is up to your own authorization boundaries.
+- Importing runs locally and needs no network access.
+- **Nothing is written to the game directory by default.** The compile/build step that produces runtime resources there only runs when you explicitly ask for it. The same applies to touching the original game directory.
 
 ## Conventions
 
