@@ -122,6 +122,34 @@ importfilelist
 
 体量参考：一个中等规模关卡补齐依赖后，content 侧约 2 GB 量级（数百个 `.vmat`、上千张贴图与网格），构建时间要按这个量级预期。
 
+## 修实体类名
+
+导入把实体放进 prefab（几何相关的在 `environment_prefab`、逻辑实体在 `gameplay_prefab`），但**类名保留源引擎的写法**。目标引擎里不存在的类会在 Hammer 里显示成未知实体，需要改名。
+
+已确认的一例：
+
+| 源类名 | 目标类名 | 说明 |
+| --- | --- | --- |
+| `light_omni` | `light_omni2` | 目标引擎只有 `light_omni2`，没有 `light_omni` |
+| `light_spot` | `light_omni2` | 目标引擎同样没有 `light_spot`；聚光由灯自身的角度参数控制，实体属性里已带锥角数据 |
+
+**先自查一遍类名**，不要等 Hammer 报错：
+
+1. 从 prefab 里取出所有 `"classname" "string" "<类名>"`。注意 prefab 通常是**二进制 DMX**，用可读串提取即可。
+2. 与目标引擎的 FGD 类清单比对。取值文件是 `game/core/*.fgd`、`game/csgo/*.fgd`、`game/csgo_core/*.fgd` 这类；**要排除导入工具自带的 FGD**（例如 `game/csgo/import_scripts/` 下的那一套），那是源引擎的 FGD，会把 `light_omni` 这类本该改名的类判成"存在"。
+3. 匹配类名时注意 FGD 允许**跨行声明**（`= prop_static` 之后换行才是 `:`），只匹配同一行的写法会漏掉大量类。
+
+**改法是转文本再转回来**，别直接编辑二进制：
+
+```powershell
+# 二进制 -> 文本
+dmxconvert -i <prefab> -ie binary -o <prefab_text> -oe keyvalues2
+# 改完再转回去（先备份原文件）
+dmxconvert -i <prefab_text> -ie keyvalues2 -o <prefab> -oe binary
+```
+
+替换时只改 classname 的值（KV3 里是 `"classname" "string" "light_omni"` 三段），别误伤同名的资源路径。改完用同一套方法复查一遍类名归零。
+
 ## 验收与边界
 
 - 在 Hammer 里打开主 `.vmap`：brushwork 在 environment prefab，实体在 gameplay prefab。
