@@ -179,7 +179,7 @@ offset_normals
 
 | 源类名 | 处理 | 原因 |
 | --- | --- | --- |
-| `info_node_link` | 删除 | 目标引擎的导航是数据驱动的，没有导航点连线实体 |
+| `info_node`、`info_node_hint`、`info_node_air`、`info_node_air_hint`、`info_node_climb`、`info_node_link` | 删除 | 目标引擎的导航走导航网格，这一整套 AI 节点图都是遗留物（它们定义在 AI/NPC 基础 FGD 里，而目标引擎没有对应的 NPC 体系）。这些实体通常数量很大（实测一张关卡 201 个 + 70 个），留着只会拖慢 Hammer 并淹没有用实体 |
 | `func_areaportal`、`func_occluder`、`func_viscluster` | 删除 | 目标引擎的可见性/遮挡系统不同，这些优化实体没有对应物 |
 | `npc_*`（头蟹、藤壶、科学家、猎眼、触手、Xen 炮塔等） | 删除 | 目标引擎没有这些 NPC |
 | `item_*`（`item_weapon_*`、`item_ammo_*`、`item_grenade_*`、`item_battery`、`item_healthkit`、`item_healthcharger`、`item_suit`、`item_longjump`） | 删除 | 目标引擎没有这类拾取物 |
@@ -189,6 +189,10 @@ offset_normals
 | 游戏自制的实体（自定义传送门、分配器、脚本控制器等，例如 `newxog_*`） | 删除 | 只有源游戏才有对应代码 |
 
 删除后再做一次类名核对；两张实测地图（一张设施关卡、一张 Xen 关卡）改完都是 0 缺失。这个映射表是按实测地图逐步补出来的，遇到表里没有的类，先按"目标引擎是否有同功能实体"判断，拿不准就列出来问用户——错误地"硬套"一个形状相似的类（比如把聚光灯改到点光源）比直接删掉更难发现。
+
+**注意别把导入器自己生成的辅助实体当成遗留物删掉。** prefab 里的实体不一定都来自源地图：导入器也会生成目标引擎原生的辅助实体。典型例子是 `path_node_generic`——它名字像导航节点，实际是**编辑器专用的路径挂点**（FGD 里标着 `editor_only = true`，作为 `path_track` / `path_simple` 这类路径实体的 `path_node_class`），删掉路径就断了。
+
+区分方法很简单：**拿类名去源 VMF 里查**。源 VMF 里没有、prefab 里却有的，就是导入器生成的，别动；源 VMF 里有、prefab 里也有的，才是需要判断去留的源实体。
 
 **先自查一遍类名**，不要等 Hammer 报错：
 
