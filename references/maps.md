@@ -251,6 +251,49 @@ offset_normals
 
 自制灯光往往带 god rays、曝光、色调映射这类目标引擎没有的参数，映射后只剩"这里有一盏灯"，动态变化的部分需要重做。
 
+## 天空盒
+
+源引擎的天空盒有两种形式：**六面立方体贴图**（`<skyname>rt` / `lf` / `bk` / `ft` / `up` / `dn`）或**单张贴图**。目标引擎的 `env_sky` 用的是**一个材质**（`skyname` 键的类型就是 `resource:material`），所以导入器会把它写成：
+
+```
+materials/skybox/<skyname>.vmat
+```
+
+**但导入器从不会创建这个材质**，而源引擎的 `sky` 着色器又会被转成 `error.vfx`（青色错误材质）。于是天空表现为空引用——地图里能看到 `<skyname>rt.vmat` 之类被导出的面材质，但 `env_sky` 指的那个单材质并不存在。
+
+修法是补上这个材质。目标引擎的天空着色器是 `sky.vfx`，吃一张 `SkyTexture`：
+
+```
+Layer0
+{
+	shader "sky.vfx"
+
+	g_flBrightnessExposureBias "0.000"
+	g_flRenderOnlyExposureBias "0.000"
+	SkyTexture "materials/skybox/<skyname>.png"
+
+	VariableState
+	{
+		"Texture"
+		{
+		}
+	}
+}
+```
+
+贴图从哪来，取决于源天空是哪种形式：
+
+| 源天空 | 处理 |
+| --- | --- |
+| 六面立方体贴图 | 把六个面**按方向向量采样拼成等距柱状全景图**，再指这张图。用 `vpk.exe x` 取 `<skyname>rt/lf/bk/ft/up/dn.vtf`、`vtf2tga` 转成图，然后逐像素求方向向量落到哪个面、取该面内的 UV 采样 |
+| 单张贴图 | 直接 `vtf2tga` 转出来用，不需要拼接 |
+
+两点补充：
+
+- 拼接用的面朝向约定是 `rt=+X`、`lf=−X`、`bk=+Y`、`ft=−Y`、`up=+Z`、`dn=−Z`。上下两个面的朝向容易反，**朝向不对时在 Hammer 里旋转 `env_sky` 实体即可**（FGD 明确写了旋转该实体会旋转天空盒）。
+- 导入器产出的 `<skyname>rt.vmat` 这类面材质在目标引擎里没有用（`error.vfx`，也没人引用），可以不管。
+- 有些天空本来就是纯黑的（地下关卡），转换后均值 0 是正常结果，不是转换失败。
+
 **先自查一遍类名**，不要等 Hammer 报错：
 
 1. 从 prefab 里取出所有 `"classname" "string" "<类名>"`。注意 prefab 通常是**二进制 DMX**，用可读串提取即可。
