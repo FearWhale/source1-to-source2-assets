@@ -131,9 +131,11 @@ importfilelist
 | 源类名 | 目标类名 | 说明 |
 | --- | --- | --- |
 | `light_omni` | `light_omni2` | 目标引擎只有 `light_omni2`，没有 `light_omni` |
-| `light_spot` | `light_omni2` | 目标引擎同样没有 `light_spot`；聚光由灯自身的角度参数控制，实体属性里已带锥角数据 |
+| `light_spot` | `light_barn` | 目标引擎同样没有 `light_spot`。**聚光灯对应的是 `light_barn`**，它才是带光圈/挡光板参数的定向灯（`size_params`、`shape`、`soft_x`/`soft_y`）；`light_omni2` 虽然也有 `outer_angle`/`inner_angle`，但那是"半球形光"的参数，拿来替代聚光灯会丢掉锥形 |
 | `func_breakable_surf` | `func_breakable` | 目标引擎没有 surf 变体，改到通用可破坏 brush |
 | `prop_flare` | `prop_dynamic` | 目标引擎没有该道具类，改到通用动态道具以保留模型 |
+
+判断某盏灯原本属于哪一类，不要只看类名：**带聚光锥角的才是原来的 spot**（导入产物里这类实体有 `outerconeangle`/`innerconeangle` 之类的锥角属性），其余是点光源。目标引擎的灯光类里没有 `light_spot`，改名前先按属性区分，避免把聚光灯错并到点光源上。
 
 **没有对应类的要删掉，不要硬套。** 目标引擎根本不存在这些机制，改名只会造出一个语义错误的新实体：
 
