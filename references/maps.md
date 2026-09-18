@@ -174,6 +174,27 @@ offset_normals
 | 源类名 | 目标类名 | 说明 |
 | --- | --- | --- |
 | `env_cubemap` | `env_cubemap_box` | 两者都在目标引擎的 FGD 里，但应使用带盒投影的 `env_cubemap_box`。这类映射靠存在性检查发现不了，需要按经验或引擎文档补 |
+| `path_particle_rope` | `path_particle_rope_clientside` | 游戏 FGD 里写明了原因：服务端绳索在每次有玩家加入时都会卡顿，要求改用 clientside 版本 |
+
+### @exclude：存在但已被禁用
+
+游戏级 FGD 会用 `@exclude <类名>` 把继承来的类移除，这有两种结果，**必须分开判断**：
+
+| 情况 | 结果 | 例子 |
+| --- | --- | --- |
+| `@exclude` 之后**又在该 FGD 里重新定义** | 仍然可用（通常是"去掉过时参数后重定义"） | `env_sky` |
+| `@exclude` 之后**没有重新定义** | 该游戏里不可用，等同于不存在 | `path_particle_rope`、`info_lighting`、`color_correction`、`env_tonemap_controller`、`fog_volume`、`light_dynamic` 等 |
+
+只看"类名是否在 FGD 里定义过"会漏掉第二种——那些类在基础 FGD 里有定义，存在性检查会判为"有"，但在目标游戏里其实用不了。所以类名核对要做**两遍**：一遍查"有没有定义"，一遍查"有没有被排除且没有重新定义"。
+
+实测两张关卡里踩到的替换与删除：
+
+| 源类名 | 处理 | 说明 |
+| --- | --- | --- |
+| `path_particle_rope` | 改名 `path_particle_rope_clientside` | 官方指定替代 |
+| `info_lighting` | 删除 | 被排除且无替代；引用它的道具会退回按自身原点取光 |
+| `color_correction`、`env_tonemap_controller` | 删除 | 被排除且无替代；目标引擎的色彩分级与色调映射走 `post_processing_volume` |
+| `fog_volume` | 删除 | 被排除且无替代；雾用 `env_fog_controller` |
 
 **没有对应类的要删掉，不要硬套。** 目标引擎根本不存在这些机制，改名只会造出一个语义错误的新实体：
 
