@@ -122,6 +122,32 @@ importfilelist
 
 体量参考：一个中等规模关卡补齐依赖后，content 侧约 2 GB 量级（数百个 `.vmat`、上千张贴图与网格），构建时间要按这个量级预期。
 
+## 地形（位移面）
+
+**症状**：导入后在 Hammer 里大片地形不见了，而导入日志里反复出现：
+
+```
+Found a displacement missing a needed subkey.
+```
+
+这条警告每条对应一个位移面，出现次数等于位移面总数；同时 environment prefab 会明显偏小。
+
+**原因**：反编译出的 VMF 在源数据没有 offset 信息时会省略 `offsets` / `offset_normals` 两个子块（源引擎里它们是可选的），而导入器要求这两个键——**缺了就直接丢弃该位移面**，只留一条警告，不报错。所以整片地形会静默消失。
+
+**修复**：给每个 `dispinfo` 块补上全零的 `offsets` 与 `offset_normals`。行数与列数都取决于该位移的 `power`：网格边长是 `2^power + 1`，每格写一个 `0 0 0`。
+
+```
+offset_normals
+{
+	"row0" "0 0 0 0 0 0 ..."
+	...（共 2^power + 1 行）
+}
+```
+
+**验收**：重新导入后 `missing a needed subkey` 应为 0，且 environment prefab 明显变大（实测一张 Xen 关卡从 4.1 MB 变成 8.5 MB）。
+
+注意这张坑很容易漏掉：**只有含位移面的地图才会触发**。设施关卡那类纯 brush 地图位移面数为 0，导入一切正常；第一次遇到地形关卡才会暴露。所以拿到一张新地图先数一下 VMF 里的 `dispinfo` 数量，非 0 就走一遍上面的检查。
+
 ## 修实体类名
 
 导入把实体放进 prefab（几何相关的在 `environment_prefab`、逻辑实体在 `gameplay_prefab`），但**类名保留源引擎的写法**。目标引擎里不存在的类会在 Hammer 里显示成未知实体，需要改名。
