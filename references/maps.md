@@ -134,6 +134,8 @@ importfilelist
 | `light_spot` | `light_barn` | 目标引擎同样没有 `light_spot`。**聚光灯对应的是 `light_barn`**，它才是带光圈/挡光板参数的定向灯（`size_params`、`shape`、`soft_x`/`soft_y`）；`light_omni2` 虽然也有 `outer_angle`/`inner_angle`，但那是"半球形光"的参数，拿来替代聚光灯会丢掉锥形 |
 | `func_breakable_surf` | `func_breakable` | 目标引擎没有 surf 变体，改到通用可破坏 brush |
 | `prop_flare` | `prop_dynamic` | 目标引擎没有该道具类，改到通用动态道具以保留模型 |
+| `func_water_analog` | `func_water` | 目标引擎只有 `func_water` |
+| `misc_dead_hev`、`prop_hev_charger` | `prop_dynamic` | 本质是模型道具，改到通用动态道具以保留模型 |
 
 判断某盏灯原本属于哪一类，不要只看类名：**带聚光锥角的才是原来的 spot**（导入产物里这类实体有 `outerconeangle`/`innerconeangle` 之类的锥角属性），其余是点光源。目标引擎的灯光类里没有 `light_spot`，改名前先按属性区分，避免把聚光灯错并到点光源上。
 
@@ -148,11 +150,15 @@ importfilelist
 | 源类名 | 处理 | 原因 |
 | --- | --- | --- |
 | `info_node_link` | 删除 | 目标引擎的导航是数据驱动的，没有导航点连线实体 |
-| `func_areaportal` | 删除 | 目标引擎的遮挡剔除机制不同，没有 areaportal |
-| `env_lensflare`、`shadow_control` | 删除 | 无对应实体 |
-| `npc_*`（`npc_headcrab`、`npc_barnacle`、`npc_human_scientist` 等） | 删除 | 目标引擎没有这些 NPC |
-| `item_*`（`item_weapon_*`、`item_ammo_*`、`item_battery`、`item_healthkit`、`item_healthcharger`、`item_suit`） | 删除 | 目标引擎没有这类拾取物 |
-| 游戏自制的实体（如自定义传送门、分配器） | 删除 | 只有源游戏才有对应代码 |
+| `func_areaportal`、`func_occluder`、`func_viscluster` | 删除 | 目标引擎的可见性/遮挡系统不同，这些优化实体没有对应物 |
+| `npc_*`（头蟹、藤壶、科学家、猎眼、触手、Xen 炮塔等） | 删除 | 目标引擎没有这些 NPC |
+| `item_*`（`item_weapon_*`、`item_ammo_*`、`item_grenade_*`、`item_battery`、`item_healthkit`、`item_healthcharger`、`item_suit`、`item_longjump`） | 删除 | 目标引擎没有这类拾取物 |
+| `ai_goal_*`、`aiscripted_schedule`、`assault_assaultpoint`、`assault_rallypoint` | 删除 | AI 调度系统不存在 |
+| `env_screeneffect`、`env_screenoverlay`、`env_zoom`、`point_viewcontrol`、`point_spotlight`、`point_tesla` | 删除 | 演出/视觉效果类没有对应实体；亮度和视角效果要在新地图里用光照与后处理重做 |
+| `env_lensflare`、`shadow_control`、`env_gravity`、`env_cascade_light`、`func_dustmotes`、`trigger_playermovement`、`point_weaponstrip`、`player_speedmod`、`player_loadsaved`、`logic_achievement` | 删除 | 无对应实体 |
+| 游戏自制的实体（自定义传送门、分配器、脚本控制器等，例如 `newxog_*`） | 删除 | 只有源游戏才有对应代码 |
+
+删除后再做一次类名核对；两张实测地图（一张设施关卡、一张 Xen 关卡）改完都是 0 缺失。这个映射表是按实测地图逐步补出来的，遇到表里没有的类，先按"目标引擎是否有同功能实体"判断，拿不准就列出来问用户——错误地"硬套"一个形状相似的类（比如把聚光灯改到点光源）比直接删掉更难发现。
 
 **先自查一遍类名**，不要等 Hammer 报错：
 
