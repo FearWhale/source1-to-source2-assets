@@ -97,13 +97,14 @@ model = "models/<dir>/<name>_gib_01.vmdl"
 
 模型上到几百个时，逐个人工补 `MaterialGroupList` 不现实，按下面的流程脚本化：
 
-1. 从每个模型的网格 DMX 里提取材质名（二进制 DMX 中的可读字符串，形如 `<名称>.vmat`）。
-2. 用插件里**已经导入的 `.vmat` 文件**建一张「基名 → 相对路径」索引，逐个解析。
-3. 给每个模型注入 `MaterialGroupList`，为**每一个**材质名写一条 remap。
+1. 从每个模型的网格 DMX 里提取材质名。**注意它通常是路径而不是基名**：形如 `models\props_office\computer_devices01.vmat`，也就是 S1 材质路径去掉开头的 `materials/`。少数模型只存基名。
+2. 用插件里**已经导入的 `.vmat` 文件**建一张「基名 → 相对路径」索引，解析出每条 remap 的 `to` 目标。
+3. 给每个模型注入 `MaterialGroupList`：**`from` 必须原样匹配网格里的名字**（统一成正斜杠写法，例如 `models/props_office/computer_devices01.vmat`），`to` 才是解析出来的材质路径。
 
 三个必须记住的点：
 
 - **`use_global_default` 必须留 `false`。** 它对应模型编辑器里的 "Globally Replace All Materials In Model"：勾上之后所有材质槽都塌缩到那一个材质，逐条材质 remap 全部失效，模型看上去就是"材质不对"。它既不能当缺失材质的兜底（缺 remap 时编译仍会整体失败并报 `referencing missing material '<名称>.vmat'`），也不该在已有逐条 remap 时开启。生成 vmdl 时写 `use_global_default = false`、`global_default_material = ""`。
+- **用基名当 `from` 会静默失效，并被全局替换掩盖。** 网格里存的是路径、remap 的 `from` 写的是基名时，这条 remap 根本不匹配；如果这时 `use_global_default` 还是 `true`，所有材质都会落到那个全局材质上，表面上"能编译、有材质"，直到关掉全局替换才集中暴露成 `referencing missing material`。所以校验必须按**精确名字**比对（两边都统一成正斜杠再比），按基名比对会给出假绿。
 - **带 skin 的模型，导入器会自己生成 `MaterialGroupList`。** 里面是按皮肤分组的 `MaterialGroup`（`name = "1"`、`"2"`…），`remaps` 全是空的（`remaps = [  ]`），而且**只有命名组、没有默认组**。命名组只在显式选择皮肤时生效，而道具默认不带皮肤，材质就解析不到——编译报 `Mesh '...' referencing missing material ...` 并整体失败。处理分两步：(1) 把命名组的空 `remaps` 填上；(2) 再补一个 `DefaultMaterialGroup`（remaps 取命名组的并集，同名 `from` 以第一个组为准），保留命名组以维持皮肤。判断"已有 remap"要看有没有真实的 `to = "materials/..."`，不能只看有没有 `MaterialGroupList` 这个字符串。
 - **材质解析范围要覆盖所有挂载的 VPK。** 模组通常还会挂载它的基础游戏包，模型可能引用基础游戏的材质；只索引模组自己的包会漏。另外**网格 DMX 里引用的材质可能比模型 `_refs.txt` 多**，因此收尾需要一轮"收集全部未解析名 → 解析 → 导入 → 再修正"。
 - **收尾做一次机械校验。** 对每个模型：网格 DMX 里的材质名集合必须是 remap `from` 集合的子集，并且每条 remap 的 `to` 都指向存在的文件。这两项任一不满足编译就会失败；只看"有没有 remap"会漏掉这两种情况。
