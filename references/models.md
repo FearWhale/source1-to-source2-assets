@@ -126,6 +126,25 @@ model = "models/<dir>/<name>_gib_01.vmdl"
 
   给每个 choice 补一个非空名字即可（按组内序号 `choice_0`、`choice_1`…）。**空 choice（`meshes = [  ]`，对应源模型的 blank）同样需要名字**，不能省略。
 
+- **动画事件引用了不存在的粒子系统。** 源模型的动画序列里如果有触发粒子的动画事件，导入器会把源粒子名原样写进资源字段：
+
+  ```
+  _class = "AnimEvent"
+  event_class = "AE_CL_CREATE_PARTICLE_EFFECT"
+  event_keys { name = resource:"<源粒子名>" ... }
+  ```
+
+  这个字段要求的是**真实的资源路径**，而粒子系统在导入前并不存在，于是编译报：
+
+  ```
+  Bad resource reference "<源粒子名>"...
+  ERROR: Tried to register an empty resource reference...
+  ```
+
+  处理方式二选一：把该粒子系统真正导入（见粒子入口），或者**删掉这条 AnimEvent 节点**——模型其余部分不受影响，只是失去这个触发效果。
+
+- **收尾时顺手扫一遍无效资源引用。** 对所有 `resource:"..."` 取值做一次检查：值为空、或既不含 `/` 也不含 `.` 的，都是悬空引用。这类引用会让整个模型编译失败，但错误信息只给一个名字，不指出是哪个模型——靠扫描比逐个试快得多。
+
 这类错误在错误面板里往往只显示模型名、材质名或节点名的一部分。定位时不要靠截图，按"挨个模型扫一遍结构"的方式校验更可靠：确认每个模型都有材质组、每条 remap 的 `to` 存在、每个 bodygroup choice 都有名字。
 
 ## 其他注意
